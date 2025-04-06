@@ -1,39 +1,46 @@
-const jwt = require('express-jwt');
-const { secret } = require('/config.json');
+const { expressjwt: jwt } = require('express-jwt');
+const { secret } = require('config.json');
 const db = require('_helpers/db');
 
 module.exports = authorize;
 
 function authorize(roles = []) {
-    // roles param can be a single role string or an array of roles like [Role.User,Role.Admin] or [User,Admin]
+    // roles param can be a single role string or an array of strings
     if (typeof roles === 'string') {
         roles = [roles];
     }
 
     return [
-        // Authenticate JWT token and attach user to request object (req.user)
+        // authenticate JWT token and attach user to request object (req.user)
         jwt({ secret, algorithms: ['HS256'] }),
 
-        // Authorize based on user role
+        // authorize based on user role
         async (req, res, next) => {
-            const account = await db.Account.findByPk(req.user.id);
+            try {
+                // Make sure req.user exists
+                if (!req.user || !req.user.id) {
+                    return res.status(401).json({ message: 'Invalid or missing token' });
+                }
 
-            if (!account) {
-                // Account did not exists
-                return res.status(401).json({ message: 'Validated Email First' });
+                // Look up account
+                const account = await db.Account.findByPk(req.user.id);
+
+                // Check if account exists and role is allowed
+                if (!account || (roles.length && !roles.includes(account.role))) {
+                    return res.status(401).json({ message: 'Unauthorized' });
+                }
+
+                // Attach additional info to req.user
+                req.user.role = account.role;
+                const refreshTokens = await account.getRefreshTokens();
+                req.user.ownsToken = token => !!refreshTokens.find(x => x.token === token);
+
+                next();
+            } catch (err) {
+                console.error('Authorize middleware error:', err);
+                res.status(500).json({ message: 'Internal server error' });
             }
-
-            if (!account || (roles.length && !roles.includes(account.role))) {
-                // role not authorized
-                return res.status(401).json({ message: 'Unauthorized' });
-            }
-
-
-            // Authentication and authorization successful
-            req.user.role = account.role;
-            const refreshTokens = await account.getRefreshTokens();
-            req.user.ownsToken = token => !!refreshTokens.find(x => x.token === token);
-            next();
         }
     ];
 }
+req.user.id
