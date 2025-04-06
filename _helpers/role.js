@@ -1,4 +1,4 @@
-MediaSourceHandle.exports = {
+module.exports = {
     Admin: 'Admin',
     User: 'User'
 }
