@@ -1,6 +1,6 @@
 const config = require('config.json');
 const mysql = require('mysql2/promise');
-const { Sequelize } = require('Sequelize');
+const { Sequelize } = require('sequelize');
 
 module.exports = db = {};
 
@@ -17,7 +17,7 @@ async function initialize() {
 
     //init models and add them to the exported db object
     db.Account = require('../accounts/account.model')(sequelize);
-    db.RefreshToken = require('../accounts/refresh-token.model')(sequelize);
+    db.RefreshToken = require('../accounts/refresh.token.model')(sequelize);
 
     //define relationships
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
