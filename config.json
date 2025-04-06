@@ -9,11 +9,11 @@
     "secret": "THIS IS A NORMAL STRING",
     "emailFrom": "info@node-mysql-signup-verification-api.com",
     "smtpOptions": {
-        "host": "[ENTER YOUR OWN SMTP OPTIONS OR CREATE FREE TEST ACCOUNT IN ONE CLICK AT https://ethereal.email/]",
+        "host": "smtp.ethereal.email",
         "port": 587,
         "auth": {
-            "user": "",
-            "pass": ""
+            "user": "maryse.friesen42@ethereal.email",
+            "pass": "dFBJfrQcrfMtVzzAh1"
         }
     }
 }
