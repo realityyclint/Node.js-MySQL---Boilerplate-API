@@ -65,5 +65,5 @@ A starter RESTful API built with Node.js, Express, and MySQL. This boilerplate i
 Follow the Git and GitHub workflow outlined in the project guidelines. Make sure to create a separate branch for each feature or fix, and submit a pull request for review.
 
 ## License
-
-MIT License
+This project is licensed under the MIT License.
+See LICENSE for details.
