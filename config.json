@@ -1,7 +1,7 @@
 {
     "database": {
         "host": "localhost",
-        "port": 3306,
+        "port": 3308,
         "user": "root",
         "password": "",
         "database": "node-mysql-signup-verification-api"
@@ -12,8 +12,8 @@
         "host": "smtp.ethereal.email",
         "port": 587,
         "auth": {
-            "user": "maryse.friesen42@ethereal.email",
-            "pass": "dFBJfrQcrfMtVzzAh1"
+            "user": "evert.damore13@ethereal.email",
+            "pass": "4MaJDrrFHEFBqNnDzp"
         }
     }
 }

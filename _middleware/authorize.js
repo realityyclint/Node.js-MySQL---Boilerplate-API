@@ -1,4 +1,4 @@
-const { expressjwt: jwt } = require('express-jwt');
+const jwt = require('express-jwt');
 const { secret } = require('config.json');
 const db = require('_helpers/db');
 
@@ -43,4 +43,3 @@ function authorize(roles = []) {
         }
     ];
 }
-req.user.id
