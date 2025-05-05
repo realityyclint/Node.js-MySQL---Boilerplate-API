@@ -7,22 +7,27 @@ module.exports = db = {};
 initialize();
 
 async function initialize() {
-    //create db if it doesn't exist
+    // Create database if it doesn't exist
     const { host, port, user, password, database } = config.database;
     const connection = await mysql.createConnection({ host, port, user, password });
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
 
-    //connect to db
+    // Connect to database
     const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
 
-    //init models and add them to the exported db object
+    // Initialize models and add them to the exported db object
     db.Account = require('../accounts/account.model')(sequelize);
     db.RefreshToken = require('../accounts/refresh.token.model')(sequelize);
+    db.Department = require('../accounts/department.model')(sequelize, Sequelize.DataTypes);
+    db.Employee = require('../accounts/employee.model')(sequelize, Sequelize.DataTypes);
 
-    //define relationships
+    // Define relationships
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
     db.RefreshToken.belongsTo(db.Account);
 
-    //sync all models with database
+    db.Department.hasMany(db.Employee, { as: 'Employees', foreignKey: 'departmentId', onDelete: 'CASCADE' });
+    db.Employee.belongsTo(db.Department, { as: 'Department', foreignKey: 'departmentId' });
+
+    // Sync all models with the database
     await sequelize.sync({ alter: true });
 }

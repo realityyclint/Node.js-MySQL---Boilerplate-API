@@ -20,6 +20,10 @@ router.get('/:id', authorize(), getById);
 router.post('/', authorize(Role.Admin), createSchema, create);
 router.put('/:id', authorize(), updateSchema, update);
 router.delete('/:id', authorize(), _delete);
+router.use('/departments', require('../departments/index'));
+router.use('/employees', require('../employees/index'));
+router.use('/requests', require('../requests/index'));
+router.use('/workflows', require('../workflows/index'));
 module.exports = router;
 
 function authenticateSchema(req, res, next) {
