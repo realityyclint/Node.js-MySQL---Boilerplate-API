@@ -22,6 +22,9 @@ async function initialize() {
     db.Employee = require('../accounts/employee.model')(sequelize, Sequelize.DataTypes);
 
     // Define relationships
+    db.Account.hasMany(db.Department, { foreignKey: 'accountId', onDelete: 'CASCADE' });
+    db.Department.belongsTo(db.Account, { foreignKey: 'accountId' });
+
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
     db.RefreshToken.belongsTo(db.Account);
 

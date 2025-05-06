@@ -6,6 +6,7 @@ const { Op } = require('sequelize');
 const sendEmail = require('_helpers/send-email');
 const db = require('_helpers/db');
 const Role = require('_helpers/role');
+const { Department } = db;  // Import the Department model
 
 module.exports = {
     authenticate,
@@ -20,8 +21,66 @@ module.exports = {
     getById,
     create,
     update,
-    delete: _delete
+    delete: _delete,
+    getDepartments,        // Added to handle department-related actions
+    createDepartment,      // Added to handle creating a new department
+    updateDepartment,      // Added to handle updating a department
+    deleteDepartment      // Added to handle deleting a department
 };
+
+// Added: Get all departments
+async function getDepartments(req, res, next) {
+    try {
+        const departments = await db.Department.findAll({
+            include: [{ model: db.Employee, as: 'Employees', attributes: ['id'] }]
+        });
+
+        const result = departments.map(dept => ({
+            ...dept.toJSON(),
+            employeeCount: dept.Employees?.length || 0
+        }));
+
+        res.json(result);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Added: Create a new department
+async function createDepartment(req, res, next) {
+    try {
+        const department = await db.Department.create(req.body);
+        res.status(201).json(department);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Added: Update an existing department
+async function updateDepartment(req, res, next) {
+    try {
+        const department = await db.Department.findByPk(req.params.id);
+        if (!department) return res.status(404).json({ message: 'Department not found' });
+
+        await department.update(req.body);
+        res.json(department);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Added: Delete a department
+async function deleteDepartment(req, res, next) {
+    try {
+        const department = await db.Department.findByPk(req.params.id);
+        if (!department) return res.status(404).json({ message: 'Department not found' });
+
+        await department.destroy();
+        res.json({ message: 'Department deleted' });
+    } catch (err) {
+        next(err);
+    }
+}
 
 async function authenticate({ email, password, ipAddress }) {
     const account = await db.Account.scope('withHash').findOne({ where: { email } });
@@ -207,6 +266,7 @@ async function _delete(id) {
 // helper functions
 async function getAccount(id) {
     const account = await db.Account.findByPk(id);
+    console.log(account);
     if (!account) throw 'Account not found';
     return account;
 }
@@ -261,23 +321,6 @@ async function sendVerificationEmail(account, origin) {
         subject: 'Sign-up Verification API - Verify Email',
         html: `<h4>Verify Email</h4>
                <p>Thanks for registering!</p>
-               ${message}`
-    });
-}
-
-async function sendAlreadyRegisteredEmail(email, origin) {
-    let message;
-    if (origin) {
-        message = `<p>If you don't know your password please visit the <a href="${origin}/account/forgot-password">forgot password</a> page.</p>`;
-    } else {
-        message = `<p>If you don't know your password you can reset it via the <code>/account/forgot-password</code> api route.</p>`;
-    }
-
-    await sendEmail({
-        to: email,
-        subject: 'Sign-up Verification API - Email Already Registered',
-        html: `<h4>Email Already Registered</h4>
-               <p>Your email <strong>${email}</strong> is already registered.</p>
                ${message}`
     });
 }

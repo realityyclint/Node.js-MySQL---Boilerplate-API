@@ -4,57 +4,76 @@ const db = require('../_helpers/db');
 const authorize = require('../_middleware/authorize');
 const Role = require('../_helpers/role');
 
-router.post('/', authorize(Role.Admin), create);
-router.get('/', authorize(), getAll);
-router.get('/:id', authorize(), getById);
-router.put('/:id', authorize(Role.Admin), update);
-router.delete('/:id', authorize(Role.Admin), _delete);
-
-async function create(req, res, next) {
+// POST /departments – Admin only
+router.post('/', authorize(Role.Admin), async (req, res, next) => {
     try {
         const department = await db.Department.create(req.body);
         res.status(201).json(department);
-    } catch (err) { next(err); }
-}
+    } catch (err) {
+        next(err);
+    }
+});
 
-async function getAll(req, res, next) {
+// GET /departments – Authenticated
+router.get('/', authorize(), async (req, res, next) => {
     try {
         const departments = await db.Department.findAll({
-            include: [{ model: db.Employee, attributes: ['id'] }]
+            include: [{ model: db.Employee, as: 'Employees', attributes: ['id'] }]
         });
-        res.json(departments.map(d => ({
-            ...d.toJSON(),
-            employeeCount: d.Employees.length
-        })));
-    } catch (err) { next(err); }
-}
 
-async function getById(req, res, next) {
+        const result = departments.map(dept => ({
+            ...dept.toJSON(),
+            employeeCount: dept.Employees?.length || 0
+        }));
+
+        res.json(result);
+    } catch (err) {
+        next(err);
+    }
+});
+
+// GET /departments/:id – Authenticated
+router.get('/:id', authorize(), async (req, res, next) => {
     try {
         const department = await db.Department.findByPk(req.params.id, {
-            include: [{ model: db.Employee, attributes: ['id'] }]
+            include: [{ model: db.Employee, as: 'Employees', attributes: ['id'] }]
         });
-        if (!department) throw new Error('Department not found');
-        res.json({ ...department.toJSON(), employeeCount: department.Employees.length });
-    } catch (err) { next(err); }
-}
 
-async function update(req, res, next) {
+        if (!department) return res.status(404).json({ message: 'Department not found' });
+
+        res.json({
+            ...department.toJSON(),
+            employeeCount: department.Employees?.length || 0
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// PUT /departments/:id – Admin only
+router.put('/:id', authorize(Role.Admin), async (req, res, next) => {
     try {
         const department = await db.Department.findByPk(req.params.id);
-        if (!department) throw new Error('Department not found');
+        if (!department) return res.status(404).json({ message: 'Department not found' });
+
         await department.update(req.body);
         res.json(department);
-    } catch (err) { next(err); }
-}
+    } catch (err) {
+        next(err);
+    }
+});
 
-async function _delete(req, res, next) {
+// DELETE /departments/:id – Admin only
+router.delete('/:id', authorize(Role.Admin), async (req, res, next) => {
     try {
         const department = await db.Department.findByPk(req.params.id);
-        if (!department) throw new Error('Department not found');
+        if (!department) return res.status(404).json({ message: 'Department not found' });
+
         await department.destroy();
         res.json({ message: 'Department deleted' });
-    } catch (err) { next(err); }
-}
+    } catch (err) {
+        next(err);
+    }
+});
 
 module.exports = router;

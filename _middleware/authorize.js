@@ -5,32 +5,33 @@ const db = require('_helpers/db');
 module.exports = authorize;
 
 function authorize(roles = []) {
-    // roles param can be a single role string or an array of strings
     if (typeof roles === 'string') {
         roles = [roles];
     }
 
     return [
-        // authenticate JWT token and attach user to request object (req.user)
         jwt({ secret, algorithms: ['HS256'] }),
 
-        // authorize based on user role
         async (req, res, next) => {
             try {
-                // Make sure req.user exists
+                console.log('Decoded req.user:', req.user);
+
                 if (!req.user || !req.user.id) {
                     return res.status(401).json({ message: 'Invalid or missing token' });
                 }
 
-                // Look up account
                 const account = await db.Account.findByPk(req.user.id);
+                console.log('req.user.id:', req.user.id);
+                console.log('Account:', account);
 
-                // Check if account exists and role is allowed
-                if (!account || (roles.length && !roles.includes(account.role))) {
-                    return res.status(401).json({ message: 'Unauthorized' });
+                if (!account) {
+                    return res.status(404).json({ message: 'Account not found' });
                 }
 
-                // Attach additional info to req.user
+                if (roles.length && !roles.includes(account.role)) {
+                    return res.status(403).json({ message: 'Forbidden: Insufficient role' });
+                }
+
                 req.user.role = account.role;
                 const refreshTokens = await account.getRefreshTokens();
                 req.user.ownsToken = token => !!refreshTokens.find(x => x.token === token);
