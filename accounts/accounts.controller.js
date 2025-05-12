@@ -15,17 +15,18 @@ router.post('/verify-email', verifyEmailSchema, verifyEmail);
 router.post('/forgot-password', forgotPasswordSchema, forgotPassword);
 router.post('/validate-reset-token', validateResetTokenSchema, validateResetToken);
 router.post('/reset-password', resetPasswordSchema, resetPassword);
-//router.get('/', authorize(Role.Admin), getAll);
-//router.get('/:id', authorize(), getById);
-//router.post('/', authorize(Role.Admin), createSchema, create);
-//router.put('/:id', authorize(), updateSchema, update);
-//router.delete('/:id', authorize(), _delete);
 
 // Add departments and employees routes
 router.use('/departments', require('../departments/index'));
 router.use('/employees', require('../employees/index'));
 router.use('/requests', require('../requests/index'));
 router.use('/workflows', require('../workflows/index'));
+
+router.get('/', authorize(Role.Admin), getAll);
+router.get('/:id', authorize(), getById);
+router.post('/', authorize(Role.Admin), createSchema, create);
+router.put('/:id', authorize(), updateSchema, update);
+router.delete('/:id', authorize(), _delete);
 
 module.exports = router;
 

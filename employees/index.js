@@ -21,19 +21,39 @@ async function create(req, res, next) {
 async function getAll(req, res, next) {
     try {
         const employees = await db.Employee.findAll({
-            include: [{ model: db.User }, { model: db.Department }]
+            attributes: ['id', 'position', 'accountId', 'departmentId', 'status', 'createdAt', 'updatedAt'],
+            include: [
+                { model: db.Department, as: 'Department', attributes: ['name'] },
+                { model: db.Account, as: 'Account', attributes: ['email'] }
+            ]
         });
-        res.json(employees);
+
+        const modifiedEmployees = employees.map(emp => {
+            const data = emp.toJSON();
+            data.hireDate = data.createdAt?.toISOString().split('T')[0];
+            return data;
+        });
+
+        res.json(modifiedEmployees);
     } catch (err) { next(err); }
 }
 
 async function getById(req, res, next) {
     try {
         const employee = await db.Employee.findByPk(req.params.id, {
-            include: [{ model: db.User }, { model: db.Department }]
+            attributes: ['id', 'position', 'accountId', 'departmentId', 'status', 'createdAt', 'updatedAt'],
+            include: [
+                { model: db.Department, as: 'Department', attributes: ['name'] },
+                { model: db.Account, as: 'Account', attributes: ['email'] }
+            ]
         });
+
         if (!employee) throw new Error('Employee not found');
-        res.json(employee);
+
+        const data = employee.toJSON();
+        data.hireDate = data.createdAt?.toISOString().split('T')[0];
+
+        res.json(data);
     } catch (err) { next(err); }
 }
 
@@ -59,7 +79,7 @@ async function transfer(req, res, next) {
     try {
         const employee = await db.Employee.findByPk(req.params.id);
         if (!employee) throw new Error('Employee not found');
-        await employee.update({ department: req.body.departmentId });
+        await employee.update({ departmentId: req.body.departmentId });
         await db.Workflow.create({
             employeeId: employee.id,
             type: 'Transfer',

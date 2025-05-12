@@ -20,16 +20,25 @@ async function initialize() {
     db.RefreshToken = require('../accounts/refresh.token.model')(sequelize);
     db.Department = require('../accounts/department.model')(sequelize, Sequelize.DataTypes);
     db.Employee = require('../accounts/employee.model')(sequelize, Sequelize.DataTypes);
+    db.Workflow = require('../accounts/workflow.model')(sequelize, Sequelize.DataTypes);
+
 
     // Define relationships
-    db.Account.hasMany(db.Department, { foreignKey: 'accountId', onDelete: 'CASCADE' });
-    db.Department.belongsTo(db.Account, { foreignKey: 'accountId' });
+    //db.Account.hasMany(db.Department, { foreignKey: 'accountId', onDelete: 'CASCADE' });
+    //db.Department.belongsTo(db.Account, { foreignKey: 'accountId' });
 
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
     db.RefreshToken.belongsTo(db.Account);
 
     db.Department.hasMany(db.Employee, { as: 'Employees', foreignKey: 'departmentId', onDelete: 'CASCADE' });
     db.Employee.belongsTo(db.Department, { as: 'Department', foreignKey: 'departmentId' });
+
+    db.Account.hasMany(db.Employee, { foreignKey: 'accountId', onDelete: 'CASCADE' });
+    db.Employee.belongsTo(db.Account, { as: 'Account', foreignKey: 'accountId' });
+
+    db.Employee.hasMany(db.Workflow, { foreignKey: 'employeeId', onDelete: 'CASCADE' });
+    db.Workflow.belongsTo(db.Employee, { foreignKey: 'employeeId' });
+
 
     // Sync all models with the database
     await sequelize.sync({ alter: true });

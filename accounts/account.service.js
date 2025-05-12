@@ -25,8 +25,98 @@ module.exports = {
     getDepartments,        // Added to handle department-related actions
     createDepartment,      // Added to handle creating a new department
     updateDepartment,      // Added to handle updating a department
-    deleteDepartment      // Added to handle deleting a department
+    deleteDepartment,      // Added to handle deleting a department
+    getEmployees,
+    getEmployeeById,
+    createEmployee,
+    updateEmployee,
+    deleteEmployee,
+    transferEmployee
 };
+
+// Get all employees
+async function getEmployees(req, res, next) {
+    try {
+        const employees = await db.Employee.findAll({
+            include: [{ model: db.Department }]
+        });
+
+        res.json(employees);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Get single employee by ID
+async function getEmployeeById(req, res, next) {
+    try {
+        const employee = await db.Employee.findByPk(req.params.id, {
+            include: [{ model: db.Department }]
+        });
+
+        if (!employee) return res.status(404).json({ message: 'Employee not found' });
+
+        res.json(employee);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Create a new employee
+async function createEmployee(req, res, next) {
+    try {
+        const employee = await db.Employee.create(req.body);
+        res.status(201).json(employee);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Update employee
+async function updateEmployee(req, res, next) {
+    try {
+        const employee = await db.Employee.findByPk(req.params.id);
+        if (!employee) return res.status(404).json({ message: 'Employee not found' });
+
+        await employee.update(req.body);
+        res.json(employee);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Delete employee
+async function deleteEmployee(req, res, next) {
+    try {
+        const employee = await db.Employee.findByPk(req.params.id);
+        if (!employee) return res.status(404).json({ message: 'Employee not found' });
+
+        await employee.destroy();
+        res.json({ message: 'Employee deleted' });
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Transfer employee to another department
+async function transferEmployee(req, res, next) {
+    try {
+        const employee = await db.Employee.findByPk(req.params.id);
+        if (!employee) return res.status(404).json({ message: 'Employee not found' });
+
+        await employee.update({ departmentId: req.body.departmentId });
+        await db.Workflow.create({
+            employeeId: employee.id,
+            type: 'Transfer',
+            details: { newDepartmentId: req.body.departmentId }
+        });
+
+        res.json({ message: 'Employee transferred' });
+    } catch (err) {
+        next(err);
+    }
+}
+
 
 // Added: Get all departments
 async function getDepartments(req, res, next) {
