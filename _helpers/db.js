@@ -1,5 +1,4 @@
-const config = require('config.json');
-const mysql = require('mysql2/promise');
+require('dotenv').config();
 const { Sequelize } = require('sequelize');
 
 module.exports = db = {};
@@ -7,26 +6,38 @@ module.exports = db = {};
 initialize();
 
 async function initialize() {
-    // Create database if it doesn't exist
-    const { host, port, user, password, database } = config.database;
-    const connection = await mysql.createConnection({ host, port, user, password });
-    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
+    // Destructure environment variables
+    const {
+        DB_HOST,
+        DB_PORT,
+        DB_USER,
+        DB_PASSWORD,
+        DB_NAME
+    } = process.env;
 
-    // Connect to database
-    const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
+    // Connect to PostgreSQL
+    const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+        host: DB_HOST,
+        port: DB_PORT,
+        dialect: 'postgres',
+        logging: false // Optional: disables SQL logging in console
+    });
 
-    // Initialize models and add them to the exported db object
+    try {
+        await sequelize.authenticate();
+        console.log('Connection has been established successfully.');
+    } catch (error) {
+        console.error('Unable to connect to the database:', error);
+    }
+
+    // Initialize models
     db.Account = require('../accounts/account.model')(sequelize);
     db.RefreshToken = require('../accounts/refresh.token.model')(sequelize);
     db.Department = require('../accounts/department.model')(sequelize, Sequelize.DataTypes);
     db.Employee = require('../accounts/employee.model')(sequelize, Sequelize.DataTypes);
     db.Workflow = require('../accounts/workflow.model')(sequelize, Sequelize.DataTypes);
 
-
     // Define relationships
-    //db.Account.hasMany(db.Department, { foreignKey: 'accountId', onDelete: 'CASCADE' });
-    //db.Department.belongsTo(db.Account, { foreignKey: 'accountId' });
-
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
     db.RefreshToken.belongsTo(db.Account);
 
@@ -39,7 +50,6 @@ async function initialize() {
     db.Employee.hasMany(db.Workflow, { foreignKey: 'employeeId', onDelete: 'CASCADE' });
     db.Workflow.belongsTo(db.Employee, { foreignKey: 'employeeId' });
 
-
-    // Sync all models with the database
+    // Sync all models with PostgreSQL
     await sequelize.sync({ alter: true });
 }
