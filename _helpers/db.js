@@ -39,6 +39,10 @@ async function initialize() {
 
     // Sync Account model first
     await db.Account.sync({ alter: true }); // Ensures Account table is created first
+    await db.Department.sync({ alter: true });
+    await db.Employee.sync({ alter: true });
+    await db.Workflow.sync({ alter: true });
+    await db.RefreshToken.sync({ alter: true });
 
     // Define relationships
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
@@ -54,10 +58,6 @@ async function initialize() {
     db.Workflow.belongsTo(db.Employee, { foreignKey: 'employeeId' });
 
     // Sync the remaining models
-    await db.Department.sync({ alter: true });
-    await db.Employee.sync({ alter: true });
-    await db.Workflow.sync({ alter: true });
-    await db.RefreshToken.sync({ alter: true });
 
     // Sync all models with PostgreSQL
     await sequelize.sync({ alter: true });
