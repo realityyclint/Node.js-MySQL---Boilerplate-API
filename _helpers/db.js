@@ -37,6 +37,9 @@ async function initialize() {
     db.Employee = require('../accounts/employee.model')(sequelize, Sequelize.DataTypes);
     db.Workflow = require('../accounts/workflow.model')(sequelize, Sequelize.DataTypes);
 
+    // Sync Account model first
+    await db.Account.sync({ alter: true }); // Ensures Account table is created first
+
     // Define relationships
     db.Account.hasMany(db.RefreshToken, { onDelete: 'CASCADE' });
     db.RefreshToken.belongsTo(db.Account);
@@ -49,6 +52,12 @@ async function initialize() {
 
     db.Employee.hasMany(db.Workflow, { foreignKey: 'employeeId', onDelete: 'CASCADE' });
     db.Workflow.belongsTo(db.Employee, { foreignKey: 'employeeId' });
+
+    // Sync the remaining models
+    await db.Employee.sync({ alter: true });
+    await db.Workflow.sync({ alter: true });
+    await db.Department.sync({ alter: true });
+    await db.RefreshToken.sync({ alter: true });
 
     // Sync all models with PostgreSQL
     await sequelize.sync({ alter: true });
