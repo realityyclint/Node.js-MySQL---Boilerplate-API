@@ -54,9 +54,9 @@ async function initialize() {
     db.Workflow.belongsTo(db.Employee, { foreignKey: 'employeeId' });
 
     // Sync the remaining models
+    await db.Department.sync({ alter: true });
     await db.Employee.sync({ alter: true });
     await db.Workflow.sync({ alter: true });
-    await db.Department.sync({ alter: true });
     await db.RefreshToken.sync({ alter: true });
 
     // Sync all models with PostgreSQL
