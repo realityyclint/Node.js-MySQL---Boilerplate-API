@@ -232,7 +232,9 @@ function _delete(req, res, next) {
 function setTokenCookie(res, token) {
     const cookieOptions = {
         httpOnly: true,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        secure: true, // Ensure cookies are only sent over HTTPS
+        sameSite: 'None', // Required for cross-origin cookies
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
     };
     res.cookie('refreshToken', token, cookieOptions);
 }
