@@ -54,7 +54,7 @@ async function initialize() {
     db.Request.belongsTo(db.Employee, { as: 'Employee', foreignKey: 'employeeId' });
 
     db.Request.hasMany(db.RequestItem, { foreignKey: 'requestId', as: 'RequestItems', onDelete: 'CASCADE' });
-    db.RequestItem.belongsTo(db.Request, { foreignKey: 'requestId' });
+    db.RequestItem.belongsTo(db.Request, { foreignKey: 'requestId', as: 'Request' });
 
     // Sync all models
     await db.Account.sync({ alter: true });
