@@ -58,7 +58,7 @@ async function create(req, res, next) {
 async function getAll(req, res, next) {
     try {
         const requests = await db.Request.findAll({
-            include: [{ model: db.RequestItem }, { model: db.Employee }]
+            include: [{ model: db.RequestItem, as: 'RequestItems' }, { model: db.Employee }]
         });
         res.json(requests);
     } catch (err) { next(err); }
@@ -67,7 +67,7 @@ async function getAll(req, res, next) {
 async function getById(req, res, next) {
     try {
         const request = await db.Request.findByPk(req.params.id, {
-            include: [{ model: db.RequestItem }, { model: db.Employee }]
+            include: [{ model: db.RequestItem, as: 'RequestItems' }, { model: db.Employee }]
         });
         if (!request) throw new Error('Request not found');
         if (req.user.role !== Role.Admin && request.employeeId !== req.user.employeeId) {
@@ -81,7 +81,7 @@ async function getByEmployeeId(req, res, next) {
     try {
         const requests = await db.Request.findAll({
             where: { employeeId: req.params.employeeId },
-            include: [{ model: db.RequestItem }]
+            include: [{ model: db.RequestItem, as: 'RequestItems' }]
         });
         res.json(requests);
     } catch (err) { next(err); }

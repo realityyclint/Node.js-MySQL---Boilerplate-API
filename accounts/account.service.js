@@ -45,7 +45,7 @@ async function getRequests(req, res, next) {
         const requests = await db.Request.findAll({
             include: [
                 { model: db.Employee, as: 'Employee' },
-                { model: db.RequestItem } // Include associated items
+                { model: db.RequestItem, as: 'RequestItems' } // Include associated items
             ]
         });
         res.json(requests);
@@ -60,7 +60,7 @@ async function getRequestById(req, res, next) {
         const request = await db.Request.findByPk(req.params.id, {
             include: [
                 { model: db.Employee, as: 'Employee' },
-                { model: db.RequestItem }
+                { model: db.RequestItem, as: 'RequestItems' }
             ]
         });
 
