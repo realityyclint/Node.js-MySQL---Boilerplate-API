@@ -13,11 +13,17 @@ router.delete('/:id', authorize(Role.Admin), _delete);
 
 async function create(req, res, next) {
     try {
-        const { items, ...requestData } = req.body;
+        const { items, employeeId: bodyEmployeeId, ...requestData } = req.body;
+
+        const employeeId = req.user.employeeId || bodyEmployeeId;
+
+        if (!employeeId) {
+            return res.status(400).json({ message: 'Employee ID is required' });
+        }
 
         const request = await db.Request.create({
             ...requestData,
-            employeeId: req.user.employeeId // force ownership
+            employeeId
         });
 
         if (items && items.length > 0) {
@@ -33,6 +39,7 @@ async function create(req, res, next) {
         next(err);
     }
 }
+
 
 async function getAll(req, res, next) {
     try {
