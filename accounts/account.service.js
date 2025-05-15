@@ -79,13 +79,23 @@ async function createRequest(req, res, next) {
             return res.status(403).json({ message: 'Only Admin or Staff can create requests' });
         }
 
-        const employee = await db.Employee.findOne({ where: { accountId: req.user.id } });
+        let employee;
 
-        if (!employee) {
-            return res.status(404).json({ message: 'Employee not found for this account' });
+        if (req.user.role === Role.Admin && req.body.employeeId) {
+            // Admin-specified employee
+            employee = await db.Employee.findByPk(req.body.employeeId);
+            if (!employee) {
+                return res.status(404).json({ message: 'Employee not found with provided ID' });
+            }
+        } else {
+            // Staff linked to their account
+            employee = await db.Employee.findOne({ where: { accountId: req.user.id } });
+            if (!employee) {
+                return res.status(404).json({ message: 'Employee not found for this account' });
+            }
         }
 
-        const { items, ...requestData } = req.body;
+        const { items, employeeId, ...requestData } = req.body;
 
         const request = await db.Request.create({
             ...requestData,
