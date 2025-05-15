@@ -58,7 +58,7 @@ async function create(req, res, next) {
 async function getAll(req, res, next) {
     try {
         const requests = await db.Request.findAll({
-            include: [{ model: db.RequestItem, as: 'RequestItems' }, { model: db.Employee, as: 'Employee' }]
+            include: [{ model: db.RequestItem, as: 'RequestItems' }, { model: db.Employee, as: 'Employee', include: [{ model: db.Account, as: 'Account' }] }]
         });
         res.json(requests);
     } catch (err) { next(err); }
