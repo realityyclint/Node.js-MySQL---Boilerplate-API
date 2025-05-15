@@ -23,6 +23,7 @@ app.use('/accounts', require('./accounts/accounts.controller'));
 app.use('/accounts/departments', require('./departments/index')); // Use the updated department controller
 app.use('/accounts/employees', require('./employees/index'));
 app.use('/accounts/workflows', require('./workflows/index'));
+app.use('/accounts/requests', require('./requests/index'));
 
 // Swagger docs route
 app.use('/api-docs', require('./_helpers/swagger'));

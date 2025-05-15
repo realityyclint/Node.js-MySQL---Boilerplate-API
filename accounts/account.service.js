@@ -31,8 +31,107 @@ module.exports = {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    transferEmployee
+    transferEmployee,
+    getRequests,
+    getRequestById,
+    createRequest,
+    updateRequest,
+    deleteRequest
 };
+
+// Get all requests
+async function getRequests(req, res, next) {
+    try {
+        const requests = await db.Request.findAll({
+            include: [
+                { model: db.Employee, as: 'Employee' },
+                { model: db.RequestItem } // Include associated items
+            ]
+        });
+        res.json(requests);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Get request by ID
+async function getRequestById(req, res, next) {
+    try {
+        const request = await db.Request.findByPk(req.params.id, {
+            include: [
+                { model: db.Employee, as: 'Employee' },
+                { model: db.RequestItem }
+            ]
+        });
+
+        if (!request) return res.status(404).json({ message: 'Request not found' });
+
+        res.json(request);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Create new request
+async function createRequest(req, res, next) {
+    try {
+        const { items, ...requestData } = req.body;
+
+        const request = await db.Request.create(requestData);
+
+        if (items && items.length > 0) {
+            const itemsWithRequestId = items.map(item => ({
+                ...item,
+                requestId: request.id
+            }));
+
+            await db.RequestItem.bulkCreate(itemsWithRequestId);
+        }
+
+        res.status(201).json(request);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Update request
+async function updateRequest(req, res, next) {
+    try {
+        const request = await db.Request.findByPk(req.params.id);
+        if (!request) return res.status(404).json({ message: 'Request not found' });
+
+        await request.update(req.body);
+
+        if (req.body.items) {
+            await db.RequestItem.destroy({ where: { requestId: request.id } });
+
+            const updatedItems = req.body.items.map(item => ({
+                ...item,
+                requestId: request.id
+            }));
+
+            await db.RequestItem.bulkCreate(updatedItems);
+        }
+
+        res.json(request);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// Delete request
+async function deleteRequest(req, res, next) {
+    try {
+        const request = await db.Request.findByPk(req.params.id);
+        if (!request) return res.status(404).json({ message: 'Request not found' });
+
+        await request.destroy();
+        res.json({ message: 'Request deleted' });
+    } catch (err) {
+        next(err);
+    }
+}
+
 
 // Get all employees
 async function getEmployees(req, res, next) {

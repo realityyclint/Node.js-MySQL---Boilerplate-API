@@ -16,7 +16,7 @@ router.post('/forgot-password', forgotPasswordSchema, forgotPassword);
 router.post('/validate-reset-token', validateResetTokenSchema, validateResetToken);
 router.post('/reset-password', resetPasswordSchema, resetPassword);
 
-// Add departments and employees routes
+
 router.use('/departments', require('../departments/index'));
 router.use('/employees', require('../employees/index'));
 router.use('/requests', require('../requests/index'));

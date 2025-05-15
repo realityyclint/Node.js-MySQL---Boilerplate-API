@@ -13,14 +13,25 @@ router.delete('/:id', authorize(Role.Admin), _delete);
 
 async function create(req, res, next) {
     try {
+        const { items, ...requestData } = req.body;
+
         const request = await db.Request.create({
-            ...req.body,
-            employeeId: req.user.employeeId
-        }, {
-            include: [{ model: db.RequestItem }]
+            ...requestData,
+            employeeId: req.user.employeeId // force ownership
         });
+
+        if (items && items.length > 0) {
+            const itemsWithRequestId = items.map(item => ({
+                ...item,
+                requestId: request.id
+            }));
+            await db.RequestItem.bulkCreate(itemsWithRequestId);
+        }
+
         res.status(201).json(request);
-    } catch (err) { next(err); }
+    } catch (err) {
+        next(err);
+    }
 }
 
 async function getAll(req, res, next) {
