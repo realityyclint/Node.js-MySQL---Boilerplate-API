@@ -75,9 +75,22 @@ async function getRequestById(req, res, next) {
 // Create new request
 async function createRequest(req, res, next) {
     try {
+        if (![Role.Admin, Role.Staff].includes(req.user.role)) {
+            return res.status(403).json({ message: 'Only Admin or Staff can create requests' });
+        }
+
+        const employee = await db.Employee.findOne({ where: { accountId: req.user.id } });
+
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found for this account' });
+        }
+
         const { items, ...requestData } = req.body;
 
-        const request = await db.Request.create(requestData);
+        const request = await db.Request.create({
+            ...requestData,
+            employeeId: employee.id
+        });
 
         if (items && items.length > 0) {
             const itemsWithRequestId = items.map(item => ({
@@ -93,6 +106,7 @@ async function createRequest(req, res, next) {
         next(err);
     }
 }
+
 
 // Update request
 async function updateRequest(req, res, next) {

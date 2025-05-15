@@ -13,17 +13,23 @@ router.delete('/:id', authorize(Role.Admin), _delete);
 
 async function create(req, res, next) {
     try {
-        const { items, employeeId: bodyEmployeeId, ...requestData } = req.body;
-
-        const employeeId = req.user.employeeId || bodyEmployeeId;
-
-        if (!employeeId) {
-            return res.status(400).json({ message: 'Employee ID is required' });
+        // Check if user is Admin or Staff
+        if (![Role.Admin, Role.Staff].includes(req.user.role)) {
+            return res.status(403).json({ message: 'Only Admin or Staff can create requests' });
         }
+
+        // Find the employee using the logged-in account ID
+        const employee = await db.Employee.findOne({ where: { accountId: req.user.id } });
+
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found for this account' });
+        }
+
+        const { items, ...requestData } = req.body;
 
         const request = await db.Request.create({
             ...requestData,
-            employeeId
+            employeeId: employee.id
         });
 
         if (items && items.length > 0) {
@@ -39,6 +45,7 @@ async function create(req, res, next) {
         next(err);
     }
 }
+
 
 
 async function getAll(req, res, next) {
