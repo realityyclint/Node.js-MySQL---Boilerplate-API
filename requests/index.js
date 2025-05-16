@@ -67,15 +67,35 @@ async function getAll(req, res, next) {
 async function getById(req, res, next) {
     try {
         const request = await db.Request.findByPk(req.params.id, {
-            include: [{ model: db.RequestItem, as: 'RequestItems' }, { model: db.Employee, as: 'Employee' }]
+            include: [
+                { model: db.RequestItem, as: 'RequestItems' },
+                {
+                    model: db.Employee,
+                    as: 'Employee',
+                    include: [{ model: db.Account, as: 'Account' }]
+                }
+            ]
         });
-        if (!request) throw new Error('Request not found');
-        if (req.user.role !== Role.Admin && request.employeeId !== req.user.employeeId) {
-            throw new Error('Unauthorized');
+
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
         }
+
+        // Admins can access any request
+        if (req.user.role !== Role.Admin) {
+            const employee = await db.Employee.findOne({ where: { accountId: req.user.id } });
+
+            if (!employee || request.employeeId !== employee.id) {
+                return res.status(403).json({ message: 'Forbidden: Not your request' });
+            }
+        }
+
         res.json(request);
-    } catch (err) { next(err); }
+    } catch (err) {
+        next(err);
+    }
 }
+
 
 async function getByEmployeeId(req, res, next) {
     try {
