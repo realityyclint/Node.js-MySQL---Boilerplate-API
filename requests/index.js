@@ -13,8 +13,8 @@ router.delete('/:id', authorize(Role.Admin), _delete);
 
 async function create(req, res, next) {
     try {
-        if (![Role.Admin, Role.Staff].includes(req.user.role)) {
-            return res.status(403).json({ message: 'Only Admin or Staff can create requests' });
+        if (![Role.Admin, Role.User].includes(req.user.role)) {
+            return res.status(403).json({ message: 'Only Admin or User can create requests' });
         }
 
         let employee;
